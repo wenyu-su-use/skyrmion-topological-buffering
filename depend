@@ -1,0 +1,3 @@
+mc_Ising.o: mc_Ising.cpp common.h mc_Ising.h
+common.o: common.cpp common.h
+main.o: main.cpp common.h mc_Ising.h

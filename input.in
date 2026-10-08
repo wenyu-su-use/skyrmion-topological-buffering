@@ -1,0 +1,192 @@
+# ============================================================
+# High-statistics input for strict finite-size observables
+# Use with: mc_Ising_strict_observables_with_reciprocal_metrics.cpp
+#
+# Main purpose:
+#   1) SkX -> BrG-like translational roughening:
+#      mT, G_T(r), GT_tail, eta_T, A_B, W2_phase,
+#      dQ_parallel/q0, dQ_perp/q0, xi_parallel/a_sk, xi_perp/a_sk,
+#      Chi_mT, Chi_W2, Chi_AB, Chi_dQparallel.
+#
+#   2) BrG-like -> SkG defect/topology transition:
+#      strict PBC-Delaunay Phi6_global/local, chi6, normalized Binder,
+#      N5/N, N6/N, N7/N, N_non6/N,
+#      dislocation density, free/bound dislocation fractions,
+#      rho_D, rho_D_free, chi_D_free, xi_D/a_sk.
+#
+#   3) Reciprocal-space ring / Bragg-peak metrics:
+#      q0, Psi6_ring, SigmaQ, S_norm, CV_theta,
+#      C6_k, C12_k, f6_peak, IPR_q, N_eff_q, PBR,
+#      dQpar_over_q0, dQperp_over_q0, PeakSpread, A6_peak.
+#
+# Notes:
+#   - n_bins is kept at 1120 as requested.
+#   - For reciprocal metrics, calculate_structure_factor MUST be true.
+#   - write_snapshots=false is kept to reduce disk usage.
+#   - Detailed block-sample files are disabled by default to avoid enormous
+#     output. The measured quantities and disorder-sample statistics are still
+#     computed. Set write_*_block_samples=true only if you need raw blocks.
+# ============================================================
+
+# ---------- lattice ----------
+Lx=150
+Ly=150
+
+# ---------- Monte Carlo ----------
+n_warmup=10000
+n_measure=10000
+n_bins=1120
+random_restarts=1
+observable_stride=10
+snapshot_stride=1000
+overrelax_sweeps=10
+max_low_t_sweeps=160
+stable_checks_required=10
+seed=20260531
+
+# ---------- temperatures ----------
+T_target=0.002
+T_anneal_start=0.3
+anneal_rate=0.8
+energy_tolerance_per_site=1e-6
+
+# ---------- interactions ----------
+J1=-0.3333333333333333
+D1=1.0
+J2=0.0
+D2=0.0
+J3=0.0
+delta_J1=0.0
+delta_J2=0.0
+
+# ---------- scans ----------
+# Dense low-disorder scan for SkX -> BrG-like roughening,
+# plus wider scan up to D=1.0 for BrG-like -> SkG.
+D_values=1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14,1.15,1.16,1.17,1.18,1.19,1.2,1.22,1.24,1.26,1.28,1.3,1.4,1.6,1.8,2.0,2.5,2.8,3.0
+B_values=1.20
+
+# ---------- strict phase-boundary diagnostics ----------
+# In mc_Ising_strict_observables_with_reciprocal_metrics.cpp the
+# coordination/defect part uses strict 3x3-image PBC Delaunay neighbours.
+# The nn_rmin/rmax keys are kept only for backward compatibility.
+calculate_phase_diagnostics=true
+phase_defect_measure_stride=2
+phase_defect_nn_rmin_factor=0.70
+phase_defect_nn_rmax_factor=1.30
+
+# Dislocation definition:
+#   - one adjacent 5-7 Delaunay pair = one dislocation core;
+#   - two opposite-polarity nearby cores = bound dislocation pair;
+#   - remaining cores = free dislocations.
+dislocation_pair_rmax_factor=1.35
+dislocation_bind_rmax_factor=3.0
+dislocation_opposite_cos=-0.5
+
+g6_tail_rmin=8.0
+g6_tail_rmax=12.0
+
+# ---------- gx0 correlation ----------
+# g(x,0)-1 from skyrmion centers.
+calculate_gx0=true
+gx0_measure_stride=4
+gx0_block_size=40
+gx0_xmax=12.0
+gx0_dbin=0.04
+gx0_strip_half_width=0.08
+gx0_core_sign=negative
+gx0_core_threshold=0.0
+gx0_min_cluster_size=4
+gx0_nn_rmin_factor=0.70
+gx0_nn_rmax_factor=1.30
+write_gx0_block_samples=false
+
+# ---------- G6(r) correlation ----------
+# Uses PBC-Delaunay psi6_i and pair correlation Re[psi6_i conj(psi6_j)].
+calculate_g6r=true
+g6r_measure_stride=4
+g6r_block_size=50
+g6r_rmax=12.0
+g6r_rbin=0.2
+write_g6r_block_samples=false
+
+# ---------- G6(t) temporal correlation ----------
+calculate_g6t=true
+g6t_measure_stride=5
+# For L=30, use a 30x30 fixed grid by default.  A 60x60 grid also works,
+# but it is slower and not necessary for a finite-size scan.
+g6t_grid_nx=30
+g6t_grid_ny=30
+g6t_max_lag=60
+g6t_dt=1.0
+g6t_max_assign_dist_factor=-1.0
+write_g6t_disorder_samples=true
+
+# ---------- Correct Python-compatible G_T diagnostics ----------
+calculate_trans_diagnostics=true
+
+# For independent disorder/restart bins, use per-frame strongest reciprocal-grid G.
+# This matches the verified Python script with USE_COMMON_G_FOR_ALL_FRAMES=false
+# and AVERAGE_SIXFOLD=false.
+trans_g_mode=per_frame_grid
+trans_reference_iD=0
+trans_reference_iB=0
+trans_n_g_vectors=1
+trans_average_multiple_g=false
+
+trans_q0_min_factor=0.70
+trans_q0_max_factor=1.30
+trans_angle_min_separation=0.25
+
+trans_measure_stride=4
+trans_block_size=50
+write_trans_block_samples=false
+
+trans_rmax=14.0
+trans_rbin=0.05
+trans_tail_rmin=8.0
+trans_tail_rmax=14.0
+
+trans_fit_rmin=3.0
+trans_fit_rmax=14.0
+trans_gt_min_for_log=1e-8
+
+# ---------- Extra SkX -> BrG-like elastic roughening / Bragg-peak diagnostics ----------
+# W2_phase measures translational phase roughness.
+# Chi_W2_dis / Chi_AB_dis / Chi_dQpar_dis are more suitable than chi_mT
+# for detecting SkX -> BrG-like elastic roughening.
+# Bragg peak widths are computed from skyrmion-center S_c(q) around the selected G.
+trans_peak_width_window_factor=0.35
+trans_peak_width_background=1.0
+
+# G_T(t).  Use 60 lags to match G6(t).  Setting 0 means all available lags,
+# which is usually too expensive for n_bins=1120 and not needed for phase scans.
+trans_t_max_lag=60
+trans_t_dt=1.0
+
+# Optional fixed-axis/manual-G settings; keep disabled for Python-compatible mode.
+trans_use_fixed_axis=false
+trans_fixed_axis_angle=0.0
+trans_fixed_ask=0.0
+trans_manual_gx=0.0
+trans_manual_gy=0.0
+
+# ---------- reciprocal-space entropy / Bragg-peak metrics ----------
+# These are computed inside WriteStructureFactor and require:
+#   calculate_structure_factor=true
+#
+# Output files:
+#   ReciprocalMetrics_Measures_iD*_iB*.txt
+#   ReciprocalMetrics_BinSamples_iD*_iB*.txt
+#
+# Key quantities:
+#   SkX -> BrG-like:
+#     dQpar_over_q0, dQperp_over_q0, PeakSpread, N_eff_q
+#   BrG-like -> SkG:
+#     S_norm, C6_k, f6_peak, PBR, A6_peak
+
+# ---------- output ----------
+# Must be true for reciprocal metrics.
+calculate_structure_factor=true
+
+# Keep false unless you need raw spin snapshots.
+write_snapshots=true
