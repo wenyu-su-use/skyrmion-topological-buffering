@@ -31,14 +31,14 @@ struct MC_Measurements {
     double mz = 0.0;
     double skyrmion_number = 0.0;
     double sublattice_sk_order = 0.0;
-    double psi6 = 0.0;        // ¼æÈİ¾É±äÁ¿Ãû£»ÏÖÔÚµÈÓÚ phi6_global
+    double psi6 = 0.0;        // å…¼å®¹æ—§å˜é‡åï¼›ç°åœ¨ç­‰äº phi6_global
     double chirality = 0.0;
 
-    // Skyrmion-center °æ±¾ÁùÖØÈ¡ÏòĞò
+    // Skyrmion-center ç‰ˆæœ¬å…­é‡å–å‘åº
     double phi6_global = 0.0;     // |Phi6| = |mean_i psi6_i|
     double phi6_local = 0.0;      // mean_i |psi6_i|
 
-    // ÓÃÓÚÈÈÕÇÂäĞÍ chi6
+    // ç”¨äºçƒ­æ¶¨è½å‹ chi6
     double phi6_global_sq = 0.0;  // |Phi6|^2
     double phi6_local_sq = 0.0;   // (mean_i |psi6_i|)^2
     double chi6_global = 0.0;
